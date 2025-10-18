@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suporte FlowSeller - Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    .sidebar {
+      position: fixed;
+      width: 220px;
+      height: 100%;
+      background: #1e293b;
+      padding-top: 20px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      color: #38bdf8;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 15px 20px;
+      cursor: pointer;
+      color: #cbd5e1;
+    }
+
+    .tab:hover,
+    .tab.active {
+      background: #334155;
+      color: #38bdf8;
+    }
+
+    .main {
+      margin-left: 220px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 200px;
+      background: #334155;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .chart-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+
+    button {
+      background: #38bdf8;
+      border: none;
+      padding: 10px 20px;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: none;
+      background: #334155;
+      color: #f8fafc;
+    }
+
+    .group-item,
+    .call-item,
+    .note-item {
+      background: #334155;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .notification {
+      background: #ef4444;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: none;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <h2>Suporte FlowSeller</h2>
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="calls">Calls Agendadas</div>
+    <div class="tab" data-tab="groups">Grupos</div>
+    <div class="tab" data-tab="notes">Anotações</div>
+    <div class="tab" data-tab="planilha">Planilha</div>
+  </div>
+
+  <div class="main">
+    <div id="dashboard" class="tab-content">
+      <h1>Dashboard Geral</h1>
+      <div class="stats" id="statsWrap"></div>
+      <div class="chart-container">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+    <div id="calls" class="tab-content" style="display:none;">
+      <h1>Calls Agendadas</h1>
+      <div class="notification" id="callNotification">Nova Call adicionada!</div>
+      <button id="addCallBtn">+ Nova Call</button>
+      <div id="callForm" style="display:none; margin-top:15px;">
+        <input type="text" id="callEmpresa" placeholder="Nome da Empresa">
+        <input type="text" id="callLink" placeholder="Link">
+        <input type="date" id="callData">
+        <input type="time" id="callHora">
+        <select id="callTipo">
+          <option>IMPLANTAÇÃO FLOWSELLER SMART</option>
+          <option>IMPLANTAÇÃO FLOWSELLER PRO</option>
+          <option>TREINAMENTO GESTOR PRO</option>
+          <option>TREINAMENTO ATENDENTE PRO</option>
+          <option>TREINAMENTO ADM SMART</option>
+          <option>TREINAMENTO ATENDENTE SMART</option>
+          <option>TREINAMENTO CHATBOT SMART</option>
+          <option>TREINAMENTO FLUXO PRO</option>
+        </select>
+        <select id="callStatus">
+          <option value="realizada">Realizada</option>
+          <option value="reagendada">Reagendada</option>
+        </select>
+        <button id="saveCallBtn">Salvar Call</button>
+      </div>
+      <div id="callList" style="margin-top:20px;"></div>
+    </div>
+
+    <div id="groups" class="tab-content" style="display:none;">
+      <h1>Grupos</h1>
+      <div class="notification" id="groupNotification">Novo grupo adicionado!</div>
+      <button id="addGroupBtn">+ Novo Grupo</button>
+      <div id="groupForm" style="display:none; margin-top:15px;">
+        <input type="text" id="groupName" placeholder="Nome do Grupo">
+        <select id="groupStatus">
+          <option value="nao respondido">Não Respondido</option>
+          <option value="respondido">Respondido</option>
+        </select>
+        <button id="saveGroupBtn">Salvar Grupo</button>
+      </div>
+      <div id="groupList" style="margin-top:20px;"></div>
+    </div>
+
+    <div id="notes" class="tab-content" style="display:none;">
+      <h1>Anotações</h1>
+      <div class="notification" id="noteNotification">Nova anotação adicionada!</div>
+      <button id="addNoteBtn">+ Nova Anotação</button>
+      <div id="noteForm" style="display:none; margin-top:15px;">
+        <input type="text" id="noteName" placeholder="Nome">
+        <input type="text" id="noteLink" placeholder="Link">
+        <textarea id="noteObs" rows="3" placeholder="Observação"></textarea>
+        <button id="saveNoteBtn">Salvar Anotação</button>
+      </div>
+      <div id="notesList" style="margin-top:20px;"></div>
+    </div>
+
+    <div id="planilha" class="tab-content" style="display:none;">
+      <h1>Exportar Planilha</h1>
+      <button id="exportBtn">Exportar CSV</button>
+    </div>
+  </div>
+
+  <audio id="notifSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let groups = JSON.parse(localStorage.getItem('groups')) || [];
+    let calls = JSON.parse(localStorage.getItem('calls')) || [];
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+    function save() {
+      localStorage.setItem('groups', JSON.stringify(groups));
+      localStorage.setItem('calls', JSON.stringify(calls));
+      localStorage.setItem('notes', JSON.stringify(notes));
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).style.display = 'block';
+        renderDashboard();
+        renderNotes();
+        renderGroups();
+        renderCalls();
+      };
+    });
+
+    // === Dashboard ===
+    function renderDashboard() {
+      const statsWrap = document.getElementById('statsWrap');
+      statsWrap.innerHTML = '';
+
+      const groupsResponded = groups.filter(g => g.status === 'respondido').length;
+      const groupsNot = groups.filter(g => g.status !== 'respondido').length;
+      const callsCount = calls.length;
+
+      const statGroups = document.createElement('div');
+      statGroups.className = 'stat';
+      statGroups.innerHTML = `<h3>Grupos Respondidos</h3><p>${groupsResponded}</p>`;
+      statsWrap.appendChild(statGroups);
+
+      const statGroupsNot = document.createElement('div');
+      statGroupsNot.className = 'stat';
+      statGroupsNot.innerHTML = `<h3>Grupos Não Respondidos</h3><p>${groupsNot}</p>`;
+      statsWrap.appendChild(statGroupsNot);
+
+      const statCalls = document.createElement('div');
+      statCalls.className = 'stat';
+      statCalls.innerHTML = `<h3>Calls Agendadas</h3><p>${callsCount}</p>`;
+      statsWrap.appendChild(statCalls);
+
+      const ctx = document.getElementById('pieChart').getContext('2d');
+      if (window.pieChartInstance) window.pieChartInstance.destroy();
+      window.pieChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Grupos Respondidos', 'Grupos Não Respondidos', 'Calls Agendadas'],
+          datasets: [{
+            data: [groupsResponded, groupsNot, callsCount],
+            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6']
+          }]
+        }
+      });
+    }
+
+    // === Groups ===
+    function renderGroups() {
+      const list = document.getElementById('groupList');
+      list.innerHTML = '';
+      if (groups.length === 0) { list.innerHTML = '<p>Nenhum grupo cadastrado.</p>'; return; }
+      groups.forEach((g, i) => {
+        const div = document.createElement('div');
+        div.className = 'group-item';
+        div.innerHTML = `
+      <h3>${g.nome}</h3>
+      <p>Status: <strong style="color:${g.status === 'respondido' ? '#22c55e' : '#ef4444'}">${g.status}</strong></p>
+      <select onchange="updateGroupStatus(${i}, this.value)">
+        <option value="respondido" ${g.status === 'respondido' ? 'selected' : ''}>Respondido</option>
+        <option value="nao respondido" ${g.status === 'nao respondido' ? 'selected' : ''}>Não Respondido</option>
+      </select>
+      <button onclick="deleteGroup(${i})">Excluir</button>
+    `;
+        list.appendChild(div);
+      });
+    }
+
+    function updateGroupStatus(i, newStatus) {
+      groups[i].status = newStatus;
+      save();
+      renderGroups();
+      renderDashboard();
+    }
+
+    function deleteGroup(i) {
+      if (confirm('Excluir este grupo?')) {
+        groups.splice(i, 1);
+        save();
+        renderGroups();
+        renderDashboard();
+      }
+    }
+
+    document.getElementById('addGroupBtn').onclick = () => {
+      const form = document.getElementById('groupForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    };
+
+    document.getElementById('saveGroupBtn').onclick = () => {
+      const nome = document.getElementById('groupName').value.trim();
+      const status = document.getElementById('groupStatus').value;
+      if (!nome) return alert('Digite o nome do grupo.');
+      groups.push({ nome, status });
+      save();
+      document.getElementById('groupName').value = '';
+      document.getElementById('groupStatus').value = 'nao respondido';
+      document.getElementById('groupForm').style.display = 'none';
+      renderGroups();
+      renderDashboard();
+      triggerNotification('groupNotification');
+    };
+
+    // === Calls ===
+    function renderCalls() {
+      const list = document.getElementById('callList');
+      list.innerHTML = '';
+      if (calls.length === 0) { list.innerHTML = '<p>Nenhuma call agendada.</p>'; return; }
+      calls.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.className = 'call-item';
+        div.innerHTML = `
+      <h3>${c.empresa}</h3>
+      <p>Tipo: ${c.tipo}</p>
+      <p>Data: ${c.data} Hora: ${c.hora}</p>
+      <p>Status: <strong style="color:${c.status === 'realizada' ? '#22c55e' : '#ef4444'}">${c.status}</strong></p>
+      <select onchange="updateCallStatus(${i}, this.value)">
+        <option value="realizada" ${c.status === 'realizada' ? 'selected' : ''}>Realizada</option>
+        <option value="reagendada" ${c.status === 'reagendada' ? 'selected' : ''}>Reagendada</option>
+      </select>
+      <button onclick="deleteCall(${i})">Excluir</button>
+    `;
+        list.appendChild(div);
+      });
+    }
+
+    function updateCallStatus(i, newStatus) {
+      calls[i].status = newStatus;
+      save();
+      renderCalls();
+      renderDashboard();
+    }
+
+    function deleteCall(i) {
+      if (confirm('Excluir esta call?')) {
+        calls.splice(i, 1);
+        save();
+        renderCalls();
+        renderDashboard();
+      }
+    }
+
+    document.getElementById('addCallBtn').onclick = () => {
+      const form = document.getElementById('callForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    };
+
+    document.getElementById('saveCallBtn').onclick = () => {
+      const empresa = document.getElementById('callEmpresa').value.trim();
+      const link = document.getElementById('callLink').value.trim();
+      const data = document.getElementById('callData').value;
+      const hora = document.getElementById('callHora').value;
+      const tipo = document.getElementById('callTipo').value;
+      const status = document.getElementById('callStatus').value;
+      if (!empresa) return alert('Digite o nome da empresa.');
+      calls.push({ empresa, link, data, hora, tipo, status });
+      save();
+      document.getElementById('callEmpresa').value = '';
+      document.getElementById('callLink').value = '';
+      document.getElementById('callData').value = '';
+      document.getElementById('callHora').value = '';
+      document.getElementById('callForm').style.display = 'none';
+      renderCalls();
+      renderDashboard();
+      triggerNotification('callNotification');
+    };
+
+    // === Notas ===
+    function renderNotes() {
+      const list = document.getElementById('notesList');
+      list.innerHTML = '';
+      if (notes.length === 0) { list.innerHTML = '<p>Nenhuma anotação cadastrada.</p>'; return; }
+      notes.forEach((n, i) => {
+        const div = document.createElement('div');
+        div.className = 'note-item';
+        div.innerHTML = `
+      <h3>${n.nome}</h3>
+      ${n.link ? `<p><a href="${n.link}" target="_blank">${n.link}</a></p>` : ''}
+      <p>${n.obs}</p>
+      <button onclick="deleteNote(${i})">Excluir</button>
+    `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteNote(i) {
+      if (confirm('Excluir esta anotação?')) {
+        notes.splice(i, 1);
+        save();
+        renderNotes();
+      }
+    }
+
+    document.getElementById('addNoteBtn').onclick = () => {
+      const form = document.getElementById('noteForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    };
+
+    document.getElementById('saveNoteBtn').onclick = () => {
+      const nome = document.getElementById('noteName').value.trim();
+      const link = document.getElementById('noteLink').value.trim();
+      const obs = document.getElementById('noteObs').value.trim();
+      if (!nome) return alert('Digite o nome da anotação.');
+      notes.push({ nome, link, obs });
+      save();
+      document.getElementById('noteName').value = '';
+      document.getElementById('noteLink').value = '';
+      document.getElementById('noteObs').value = '';
+      document.getElementById('noteForm').style.display = 'none';
+      renderNotes();
+      triggerNotification('noteNotification');
+    };
+
+    // === Notificações ===
+    function triggerNotification(id) {
+      const notif = document.getElementById(id);
+      notif.style.display = 'block';
+      document.getElementById('notifSound').play();
+      setTimeout(() => { notif.style.display = 'none'; }, 3000);
+    }
+
+    // === Export CSV ===
+    document.getElementById('exportBtn').onclick = () => {
+      let csv = 'Tipo;Nome;Link;Observação/Status;Data;Hora;Tipo Call\n';
+      notes.forEach(n => { csv += `Nota;${n.nome};${n.link};${n.obs};;;;\n`; });
+      groups.forEach(g => { csv += `Grupo;${g.nome};;${g.status};;;\n`; });
+      calls.forEach(c => { csv += `Call;${c.empresa};${c.link};${c.status};${c.data};${c.hora};${c.tipo}\n`; });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'suporte_flowseller.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // Inicial
+    renderDashboard();
+    renderGroups();
+    renderNotes();
+    renderCalls();
+  </script>
+</body>
+
+</html>
